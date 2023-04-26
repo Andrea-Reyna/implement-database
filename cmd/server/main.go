@@ -44,6 +44,7 @@ func main() {
 	r := gin.Default()
 
 	r.GET("/ping", func(c *gin.Context) { c.String(200, "pong") })
+
 	products := r.Group("/products")
 	{
 		products.GET(":id", productHandler.GetByID())
@@ -59,7 +60,8 @@ func main() {
 	warehouses := r.Group("/warehouses")
 	{
 		warehouses.GET("", warehouseHandler.GetAll())
-		warehouses.GET(":id", warehouseHandler.ReportProducts())
+		warehouses.GET("/:id", warehouseHandler.GetByID())
+		warehouses.GET("/reportProducts", warehouseHandler.ReportProducts())
 		warehouses.POST("", warehouseHandler.Post())
 
 	}

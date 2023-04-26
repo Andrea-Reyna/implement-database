@@ -82,7 +82,7 @@ func (repository *mySQLRepository) Create(warehouse domain.Warehouse) (domain.Wa
 }
 
 func (repository *mySQLRepository) GetByID(id int) (warehouse domain.Warehouse, err error) {
-	query := `SELECT id, name, address, telephone, capacity FROM products where id = ?`
+	query := `SELECT id, name, address, telephone, capacity FROM warehouses where id = ?`
 	row := repository.database.QueryRow(query, id)
 	err = row.Scan(&warehouse.Id, &warehouse.Name, &warehouse.Address, &warehouse.Telephone, &warehouse.Capacity)
 	if err != nil {

@@ -89,9 +89,10 @@ func (h *warehouseHandler) GetAll() gin.HandlerFunc {
 		web.Success(c, 200, warehouses)
 	}
 }
+
 func (h *warehouseHandler) ReportProducts() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idParam := c.Param("id")
+		idParam := c.Query("id")
 		id, err := strconv.Atoi(idParam)
 		if err != nil {
 			web.Failure(c, 400, errors.New("invalid id"))
