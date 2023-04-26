@@ -40,13 +40,13 @@ func (repository *mySQLRepository) Create(product domain.Product) (domain.Produc
 	}
 	formattedDate := parsedDate.Format("2006-01-02")
 
-	statement, err := repository.database.Prepare(`INSERT INTO products(name, quantity, code_value, is_published, expiration, price) VALUES( ?, ?, ?, ?, ?, ?)`)
+	statement, err := repository.database.Prepare(`INSERT INTO products(name, quantity, code_value, is_published, expiration, price, id_warehouse) VALUES( ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		return domain.Product{}, err
 	}
 	defer statement.Close()
 	var result sql.Result
-	result, err = statement.Exec(product.Name, product.Quantity, product.CodeValue, product.IsPublished, formattedDate, product.Price)
+	result, err = statement.Exec(product.Name, product.Quantity, product.CodeValue, product.IsPublished, formattedDate, product.Price, product.WarehouseId)
 	if err != nil {
 		fmt.Println(err)
 		mysqlError, ok := err.(*mysql.MySQLError)
@@ -81,7 +81,7 @@ func (repository *mySQLRepository) Create(product domain.Product) (domain.Produc
 }
 
 func (repository *mySQLRepository) GetAll() ([]domain.Product, error) {
-	query := (`SELECT name, quantity, code_value, is_published, expiration, price FROM products`)
+	query := (`SELECT id, name, quantity, code_value, is_published, expiration, price, id_warehouse FROM products`)
 	rows, err := repository.database.Query(query)
 	if err != nil {
 		mysqlError, ok := err.(*mysql.MySQLError)
@@ -108,7 +108,7 @@ func (repository *mySQLRepository) GetAll() ([]domain.Product, error) {
 	var products []domain.Product
 	for rows.Next() {
 		var product domain.Product
-		if err := rows.Scan(&product.Id, &product.Name, &product.Quantity, &product.CodeValue, &product.IsPublished, &product.Expiration, &product.Price); err != nil {
+		if err := rows.Scan(&product.Id, &product.Name, &product.Quantity, &product.CodeValue, &product.IsPublished, &product.Expiration, &product.Price, &product.WarehouseId); err != nil {
 			return nil, ErrInternal
 		}
 		products = append(products, product)
@@ -122,9 +122,9 @@ func (repository *mySQLRepository) GetAll() ([]domain.Product, error) {
 }
 
 func (repository *mySQLRepository) GetByID(id int) (product domain.Product, err error) {
-	query := `SELECT id, name, quantity, code_value, is_published, expiration, price FROM products where id = ?`
+	query := `SELECT id, name, quantity, code_value, is_published, expiration, price, id_warehouse FROM products where id = ?`
 	row := repository.database.QueryRow(query, id)
-	err = row.Scan(&product.Id, &product.Name, &product.Quantity, &product.CodeValue, &product.IsPublished, &product.Expiration, &product.Price)
+	err = row.Scan(&product.Id, &product.Name, &product.Quantity, &product.CodeValue, &product.IsPublished, &product.Expiration, &product.Price, &product.WarehouseId)
 	if err != nil {
 		fmt.Println(err)
 		if err == sql.ErrNoRows {
@@ -161,12 +161,12 @@ func (repository *mySQLRepository) Update(id int, product domain.Product) (domai
 		return domain.Product{}, ErrParsingDate
 	}
 	formattedDate := parsedDate.Format("2006-01-02")
-	statement, err := repository.database.Prepare(`UPDATE products SET name = ?, quantity = ?, code_value = ?, is_published = ?, expiration = ?, price = ? WHERE id = ?`)
+	statement, err := repository.database.Prepare(`UPDATE products SET name = ?, quantity = ?, code_value = ?, is_published = ?, expiration = ?, price = ?, id_warehouse = ? WHERE id = ?`)
 	if err != nil {
 		return domain.Product{}, ErrInternal
 	}
 	defer statement.Close()
-	result, err := statement.Exec(product.Name, product.Quantity, product.CodeValue, product.IsPublished, formattedDate, product.Price, id)
+	result, err := statement.Exec(product.Name, product.Quantity, product.CodeValue, product.IsPublished, formattedDate, product.Price, product.WarehouseId, id)
 
 	if err != nil {
 		fmt.Println(err)

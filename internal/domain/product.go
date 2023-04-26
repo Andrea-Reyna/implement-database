@@ -8,4 +8,5 @@ type Product struct {
 	IsPublished bool    `json:"is_published"`
 	Expiration  string  `json:"expiration" binding:"required"`
 	Price       float64 `json:"price" binding:"required"`
+	WarehouseId int     `json:"id_warehouse" binding:"required"`
 }
