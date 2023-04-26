@@ -3,9 +3,11 @@ package main
 import (
 	"database/sql"
 	"log"
+	"os"
 
 	"github.com/bootcamp-go/consignas-go-db.git/cmd/server/handler"
 	"github.com/bootcamp-go/consignas-go-db.git/internal/product"
+	"github.com/bootcamp-go/consignas-go-db.git/internal/warehouse"
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
 )
@@ -15,6 +17,7 @@ func main() {
 	// storage := store.NewJsonStore("./products.json")
 	// repo := product.NewRepository(storage)
 
+	os.Setenv("TOKEN", "123456")
 	databaseConfig := mysql.Config{
 		User:   "root",
 		Addr:   "localhost:3306",
@@ -31,9 +34,12 @@ func main() {
 	log.Println("database Configured")
 
 	repository := product.NewMySQLRepository(database)
-
 	service := product.NewService(repository)
 	productHandler := handler.NewProductHandler(service)
+
+	warehouseRepository := warehouse.NewMySQLRepository(database)
+	warehouseService := warehouse.NewService(warehouseRepository)
+	warehouseHandler := handler.NewWarehouseHandler(warehouseService)
 
 	r := gin.Default()
 
@@ -41,10 +47,21 @@ func main() {
 	products := r.Group("/products")
 	{
 		products.GET(":id", productHandler.GetByID())
+		products.GET("", productHandler.GetAll())
+		products.GET("/details/:id", productHandler.GetFullData())
+
 		products.POST("", productHandler.Post())
 		products.DELETE(":id", productHandler.Delete())
 		products.PATCH(":id", productHandler.Patch())
 		products.PUT(":id", productHandler.Put())
+	}
+
+	warehouses := r.Group("/warehouses")
+	{
+		warehouses.GET("", warehouseHandler.GetAll())
+		warehouses.GET(":id", warehouseHandler.ReportProducts())
+		warehouses.POST("", warehouseHandler.Post())
+
 	}
 
 	r.Run(":8080")

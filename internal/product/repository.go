@@ -10,6 +10,10 @@ import (
 type Repository interface {
 	// GetByID busca un producto por su id
 	GetByID(id int) (domain.Product, error)
+	// GetAll busca todos los productos
+	GetAll() ([]domain.Product, error)
+	// GetAll busca todos los productos y agrega datos de warehouse
+	GetFullData(id int) (domain.ProductFull, error)
 	// Create agrega un nuevo producto
 	Create(p domain.Product) (domain.Product, error)
 	// Update actualiza un producto
@@ -34,6 +38,16 @@ func (r *repository) GetByID(id int) (domain.Product, error) {
 	}
 	return product, nil
 
+}
+
+// Only implemented in mysql_repository
+func (r *repository) GetAll() ([]domain.Product, error) {
+	return []domain.Product{}, nil
+}
+
+// Only implemented in mysql_repository
+func (r *repository) GetFullData(id int) (domain.ProductFull, error) {
+	return domain.ProductFull{}, nil
 }
 
 func (r *repository) Create(p domain.Product) (domain.Product, error) {

@@ -7,3 +7,8 @@ type Warehouse struct {
 	Telephone string `json:"telephone" binding:"required"`
 	Capacity  int    `json:"capacity"`
 }
+
+type ReportProducts struct {
+	WarehouseName string `json:"warehouse_name"`
+	ProductCount  string `json:"product_count"`
+}

@@ -48,7 +48,6 @@ func (repository *mySQLRepository) Create(product domain.Product) (domain.Produc
 	var result sql.Result
 	result, err = statement.Exec(product.Name, product.Quantity, product.CodeValue, product.IsPublished, formattedDate, product.Price, product.WarehouseId)
 	if err != nil {
-		fmt.Println(err)
 		mysqlError, ok := err.(*mysql.MySQLError)
 		if !ok {
 			return domain.Product{}, ErrInternal
@@ -121,12 +120,45 @@ func (repository *mySQLRepository) GetAll() ([]domain.Product, error) {
 	return products, nil
 }
 
+func (repository *mySQLRepository) GetFullData(id int) (domain.ProductFull, error) {
+	query := (`SELECT p.id, p.name, p.quantity, p.code_value, p.is_published, p.expiration, p.price, p.id_warehouse, w.name, w.address FROM products p 
+	INNER JOIN warehouses w ON p.id_warehouse = w.id WHERE p.id = ?`)
+	row := repository.database.QueryRow(query, id)
+	var productFull = domain.ProductFull{}
+	err := row.Scan(&productFull.Id, &productFull.Name, &productFull.Quantity, &productFull.CodeValue, &productFull.IsPublished, &productFull.Expiration, &productFull.Price, &productFull.WarehouseId, &productFull.WarehouseName, &productFull.WarehouseAddress)
+	if err != nil {
+		fmt.Println(err)
+		if err == sql.ErrNoRows {
+			return domain.ProductFull{}, ErrNotFound
+		}
+
+		mysqlError, ok := err.(*mysql.MySQLError)
+		if !ok {
+			return domain.ProductFull{}, ErrInternal
+		}
+		switch mysqlError.Number {
+		case 1044, 1045:
+			return domain.ProductFull{}, ErrAccessDenied
+		case 1046:
+			return domain.ProductFull{}, ErrNoDatabaseSelected
+		case 1054:
+			return domain.ProductFull{}, ErrUnknownColumn
+		case 1064:
+			return domain.ProductFull{}, ErrSyntaxError
+		case 1146:
+			return domain.ProductFull{}, ErrTableDoesNotExist
+		default:
+			return domain.ProductFull{}, ErrInternal
+		}
+	}
+	return productFull, nil
+}
+
 func (repository *mySQLRepository) GetByID(id int) (product domain.Product, err error) {
 	query := `SELECT id, name, quantity, code_value, is_published, expiration, price, id_warehouse FROM products where id = ?`
 	row := repository.database.QueryRow(query, id)
 	err = row.Scan(&product.Id, &product.Name, &product.Quantity, &product.CodeValue, &product.IsPublished, &product.Expiration, &product.Price, &product.WarehouseId)
 	if err != nil {
-		fmt.Println(err)
 		if err == sql.ErrNoRows {
 			return domain.Product{}, ErrNotFound
 		}
@@ -150,7 +182,6 @@ func (repository *mySQLRepository) GetByID(id int) (product domain.Product, err 
 			return domain.Product{}, ErrInternal
 		}
 	}
-	fmt.Println(product.Name)
 
 	return product, nil
 }

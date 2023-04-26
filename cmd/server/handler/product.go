@@ -41,6 +41,36 @@ func (h *productHandler) GetByID() gin.HandlerFunc {
 	}
 }
 
+// Get obtiene todos los productos
+func (h *productHandler) GetAll() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		products, err := h.s.GetAll()
+		if err != nil {
+			web.Failure(c, 500, errors.New("internal error"))
+			return
+		}
+		web.Success(c, 200, products)
+	}
+}
+
+// Get obtiene un producto por id con datos de warehouse
+func (h *productHandler) GetFullData() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		idParam := c.Param("id")
+		id, err := strconv.Atoi(idParam)
+		if err != nil {
+			web.Failure(c, 400, errors.New("invalid id"))
+			return
+		}
+		product, err := h.s.GetFullData(id)
+		if err != nil {
+			web.Failure(c, 404, errors.New("product not found"))
+			return
+		}
+		web.Success(c, 200, product)
+	}
+}
+
 // validateEmptys valida que los campos no esten vacios
 func validateEmptys(product *domain.Product) (bool, error) {
 	switch {
