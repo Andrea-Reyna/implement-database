@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"log"
-	"os"
 
 	"github.com/bootcamp-go/consignas-go-db.git/cmd/server/handler"
 	"github.com/bootcamp-go/consignas-go-db.git/internal/product"
@@ -17,11 +16,11 @@ func main() {
 	// storage := store.NewJsonStore("./products.json")
 	// repo := product.NewRepository(storage)
 
-	os.Setenv("TOKEN", "123456")
 	databaseConfig := mysql.Config{
-		User:   "root",
-		Addr:   "localhost:3306",
-		DBName: "my_db",
+		User:      "root",
+		Addr:      "localhost:3306",
+		DBName:    "my_db",
+		ParseTime: true,
 	}
 	database, err := sql.Open("mysql", databaseConfig.FormatDSN())
 	if err != nil {
@@ -63,7 +62,6 @@ func main() {
 		warehouses.GET("/:id", warehouseHandler.GetByID())
 		warehouses.GET("/reportProducts", warehouseHandler.ReportProducts())
 		warehouses.POST("", warehouseHandler.Post())
-
 	}
 
 	r.Run(":8080")
